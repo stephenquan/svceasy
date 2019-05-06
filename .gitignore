@@ -1,0 +1,4 @@
+x64
+*.user
+svceasy/Debug/
+svceasy/Release/
