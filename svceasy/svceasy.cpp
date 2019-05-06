@@ -14,7 +14,8 @@ public:
 	{
 		ActionTypeInstall,
 		ActionTypeUninstall,
-		ActionTypeService
+		ActionTypeService,
+		ActionTypeTest
 	} ACTIONTYPE;
 
 public:
@@ -25,6 +26,7 @@ public:
 	HRESULT ActionInstall();
 	HRESULT ActionUninstall();
 	HRESULT ActionService();
+	HRESULT ActionTest();
 	void ServiceStart(DWORD dwArgc, LPWSTR *lpszArgv);
 	void ServiceStop();
 	void ServicePause();
@@ -118,6 +120,12 @@ HRESULT CServiceApp::ParseArgs(int argc, wchar_t* argv[])
 				m_actionType = ActionTypeUninstall;
 				continue;
 			}
+
+			if (_wcsicmp(L"test", argv[i] + 1) == 0 || _wcsicmp(L"t", argv[i] + 1) == 0)
+			{
+				m_actionType = ActionTypeTest;
+				continue;
+			}
 		}
 	}
 
@@ -139,7 +147,7 @@ HRESULT CServiceApp::Run()
 	config.getValue(OLESTR("Service"), OLESTR("displayName"), szDisplayName, 1024, OLESTR("svceasy"));
 	config.getValue(OLESTR("Service"), OLESTR("description"), szDescription, 1024, OLESTR("svceasy"));
 	config.getValue(OLESTR("Service"), OLESTR("applicationName"), szApplicationName, 1024, OLESTR("%COMSPEC%"));
-	config.getValue(OLESTR("Service"), OLESTR("commandLine"), szApplicationName, 1024, OLESTR("%COMSPEC%"));
+	config.getValue(OLESTR("Service"), OLESTR("commandLine"), szCommandLine, 1024, OLESTR("%COMSPEC%"));
 	config.save(m_szConfigPath);
 
 	m_SCManager.SetServiceName(szServiceName);
@@ -156,6 +164,8 @@ HRESULT CServiceApp::Run()
 		return ActionUninstall();
 	case ActionTypeService:
 		return ActionService();
+	case ActionTypeTest:
+		return ActionTest();
 	}
 
 	return S_OK;
@@ -201,8 +211,17 @@ HRESULT CServiceApp::ActionService()
 	return S_OK;
 }
 
+HRESULT CServiceApp::ActionTest()
+{
+	ServiceStart(0, NULL);
+	ServiceShutdown();
+	return S_OK;
+}
+
+
 void CServiceApp::SetServiceStatus(DWORD dwCurrentState, DWORD dwWin32ExitCode, DWORD dwWaitHint)
 {
+	if (m_actionType == ActionTypeTest) return;
 	m_status.dwCurrentState = dwCurrentState;
 	m_status.dwWin32ExitCode = dwWin32ExitCode;
 	m_status.dwWaitHint = dwWaitHint;

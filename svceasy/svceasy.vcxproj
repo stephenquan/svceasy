@@ -22,7 +22,7 @@
     <VCProjectVersion>15.0</VCProjectVersion>
     <ProjectGuid>{761AE5A9-8870-4268-B8FA-120D3F62416A}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>Survey123Service</RootNamespace>
+    <RootNamespace>svceasy</RootNamespace>
     <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
     <ProjectName>svceasy</ProjectName>
   </PropertyGroup>
