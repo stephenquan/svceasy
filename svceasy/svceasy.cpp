@@ -68,6 +68,9 @@ CServiceApp::CServiceApp(int argc, wchar_t* argv[]) :
 {
     __instance = this;
 
+    WCHAR moduleName[1024] = { };
+    GetModuleFileNameW(NULL, moduleName, 1024);
+
     wcscpy_s(m_szConfigPath, 1024, argv[0]);
     LPWSTR pDot = wcsrchr(m_szConfigPath, '.');
     if (pDot)
@@ -78,6 +81,15 @@ CServiceApp::CServiceApp(int argc, wchar_t* argv[]) :
     {
         wcscat_s(m_szConfigPath, 1024, L".cfg");
     }
+
+    WCHAR szSetServiceDir[1024] = L"SERVICEDIR=";
+    wcscat_s(szSetServiceDir, 1024, moduleName);
+    LPWSTR pSlash = wcsrchr(szSetServiceDir, '\\');
+    if (pSlash)
+    {
+        *pSlash = '\0';
+    }
+    ::_wputenv(szSetServiceDir);
 
     ParseArgs(argc, argv);
 
@@ -142,13 +154,26 @@ HRESULT CServiceApp::Run()
     TCHAR szDescription[1024] = { };
     WCHAR szApplicationName[1024] = { };
     WCHAR szCommandLine[1024] = { };
+    WCHAR szStartType[1024] = { };
     config.load(m_szConfigPath);
     config.getValue(OLESTR("Service"), OLESTR("serviceName"), szServiceName, 1024, OLESTR("svceasy"));
     config.getValue(OLESTR("Service"), OLESTR("displayName"), szDisplayName, 1024, OLESTR("svceasy"));
     config.getValue(OLESTR("Service"), OLESTR("description"), szDescription, 1024, OLESTR("svceasy"));
     config.getValue(OLESTR("Service"), OLESTR("applicationName"), szApplicationName, 1024, OLESTR("%COMSPEC%"));
     config.getValue(OLESTR("Service"), OLESTR("commandLine"), szCommandLine, 1024, OLESTR("%COMSPEC%"));
+    config.getValue(OLESTR("Service"), OLESTR("startType"), szStartType, 1024, OLESTR("demand"));
     config.save(m_szConfigPath);
+
+    if (_wcsicmp(szStartType, L"auto") == 0)
+        m_SCManager.SetStartType(SERVICE_AUTO_START);
+    else if (_wcsicmp(szStartType, L"boot") == 0)
+        m_SCManager.SetStartType(SERVICE_BOOT_START);
+    else if (_wcsicmp(szStartType, L"demand") == 0)
+        m_SCManager.SetStartType(SERVICE_DEMAND_START);
+    else if (_wcsicmp(szStartType, L"disabled") == 0)
+        m_SCManager.SetStartType(SERVICE_DISABLED);
+    else if (_wcsicmp(szStartType, L"system") == 0)
+        m_SCManager.SetStartType(SERVICE_SYSTEM_START);
 
     m_SCManager.SetServiceName(szServiceName);
     m_SCManager.SetDisplayName(szDisplayName);
@@ -330,6 +355,10 @@ DWORD WINAPI CServiceApp::ThreadProc()
 
     while (true)
     {
+        char buf[1024 + 1] = { };
+        DWORD dwRead = 0;
+        ReadFile(hStdOutPipeRead, buf, 1024, &dwRead, NULL);
+        qDebug() << buf;
         DWORD dwWait = WaitForSingleObject(pi.hProcess, 2000);
         if (dwWait == WAIT_OBJECT_0) break;
     }
