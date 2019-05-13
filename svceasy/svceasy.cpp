@@ -358,7 +358,13 @@ DWORD WINAPI CServiceApp::ThreadProc()
         char buf[1024 + 1] = { };
         DWORD dwRead = 0;
         ReadFile(hStdOutPipeRead, buf, 1024, &dwRead, NULL);
-        qDebug() << buf;
+        while (dwRead != 0)
+        {
+            buf[dwRead] = '\0';
+            qDebug() << buf;
+            dwRead = 0;
+            ReadFile(hStdOutPipeRead, buf, 1024, &dwRead, NULL);
+        }
         DWORD dwWait = WaitForSingleObject(pi.hProcess, 2000);
         if (dwWait == WAIT_OBJECT_0) break;
     }
