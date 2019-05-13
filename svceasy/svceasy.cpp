@@ -156,13 +156,18 @@ HRESULT CServiceApp::Run()
     WCHAR szCommandLine[1024] = { };
     WCHAR szStartType[1024] = { };
     config.load(m_szConfigPath);
+    bool isEmpty = config.isEmpty();
     config.getValue(OLESTR("Service"), OLESTR("serviceName"), szServiceName, 1024, OLESTR("svceasy"));
     config.getValue(OLESTR("Service"), OLESTR("displayName"), szDisplayName, 1024, OLESTR("svceasy"));
     config.getValue(OLESTR("Service"), OLESTR("description"), szDescription, 1024, OLESTR("svceasy"));
     config.getValue(OLESTR("Service"), OLESTR("applicationName"), szApplicationName, 1024, OLESTR("%COMSPEC%"));
-    config.getValue(OLESTR("Service"), OLESTR("commandLine"), szCommandLine, 1024, OLESTR("%COMSPEC%"));
+    config.getValue(OLESTR("Service"), OLESTR("commandLine"), szCommandLine, 1024, OLESTR("%COMSPEC% /c DIR"));
     config.getValue(OLESTR("Service"), OLESTR("startType"), szStartType, 1024, OLESTR("demand"));
-    config.save(m_szConfigPath);
+    if (isEmpty)
+    {
+        config.save(m_szConfigPath);
+        isEmpty = false;
+    }
 
     if (_wcsicmp(szStartType, L"auto") == 0)
         m_SCManager.SetStartType(SERVICE_AUTO_START);
@@ -353,10 +358,11 @@ DWORD WINAPI CServiceApp::ThreadProc()
 
     CloseHandle(hStdOutPipeWrite);
 
+    char buf[1024 + 1] = { };
+    DWORD dwRead = 0;
+
     while (true)
     {
-        char buf[1024 + 1] = { };
-        DWORD dwRead = 0;
         ReadFile(hStdOutPipeRead, buf, 1024, &dwRead, NULL);
         while (dwRead != 0)
         {
@@ -367,6 +373,15 @@ DWORD WINAPI CServiceApp::ThreadProc()
         }
         DWORD dwWait = WaitForSingleObject(pi.hProcess, 2000);
         if (dwWait == WAIT_OBJECT_0) break;
+    }
+
+    ReadFile(hStdOutPipeRead, buf, 1024, &dwRead, NULL);
+    while (dwRead != 0)
+    {
+        buf[dwRead] = '\0';
+        qDebug() << buf;
+        dwRead = 0;
+        ReadFile(hStdOutPipeRead, buf, 1024, &dwRead, NULL);
     }
 
     // Clean up and exit.

@@ -9,6 +9,7 @@ public:
 
 public:
     HRESULT create();
+    bool isEmpty() const;
     void empty();
     void clearModified();
     void setModified();
@@ -21,7 +22,7 @@ public:
 protected:
     IXMLDOMDocument* m_pDoc;
     bool m_modified;
-
+    
 };
 
 #endif
