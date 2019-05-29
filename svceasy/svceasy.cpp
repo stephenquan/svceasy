@@ -138,6 +138,12 @@ HRESULT CServiceApp::ParseArgs(int argc, wchar_t* argv[])
                 m_actionType = ActionTypeTest;
                 continue;
             }
+
+            if (_wcsicmp(L"debug", argv[i] + 1) == 0 || _wcsicmp(L"d", argv[i] + 1) == 0)
+            {
+                m_actionType = ActionTypeTest;
+                continue;
+            }
         }
     }
 
@@ -353,12 +359,17 @@ DWORD WINAPI CServiceApp::ThreadProc()
 
     CloseHandle(hStdOutPipeWrite);
 
-    while (true)
+    while (m_Running)
     {
-        char buf[1024 + 1] = { };
-        DWORD dwRead = 0;
-        ReadFile(hStdOutPipeRead, buf, 1024, &dwRead, NULL);
-        qDebug() << buf;
+        DWORD dwTotalAvail = 0;
+        ok = PeekNamedPipe(hStdOutPipeRead, NULL, 0, NULL, &dwTotalAvail, NULL);
+        if (ok == TRUE && dwTotalAvail > 0)
+        {
+            char buf[1024 + 1] = { };
+            DWORD dwRead = 0;
+            ReadFile(hStdOutPipeRead, buf, 1024, &dwRead, NULL);
+            qDebug() << buf;
+        }
         DWORD dwWait = WaitForSingleObject(pi.hProcess, 2000);
         if (dwWait == WAIT_OBJECT_0) break;
     }
