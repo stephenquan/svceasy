@@ -94,14 +94,15 @@ public:
         return ptr->QueryInterface(&m_ptr);
     }
 
-    operator void*() { return m_ptr; }
-    operator void*() const { return m_ptr; }
-    operator T*& () { return m_ptr; }
-    operator T* () const { return m_ptr; }
-    T** operator & () { return &m_ptr; }
-    T* operator -> () { return m_ptr; }
-    T* operator -> () const { return m_ptr; }
-    CSimplePtr& operator= (IUnknown* ptr) { Assign(ptr); return *this; }
+    inline operator void*() { return m_ptr; }
+    inline operator void*() const { return m_ptr; }
+    inline operator T*& () { return m_ptr; }
+    inline operator T* () const { return m_ptr; }
+    inline T** operator & () { return &m_ptr; }
+    inline T* operator -> () { return m_ptr; }
+    inline T* operator -> () const { return m_ptr; }
+    inline CSimplePtr& operator= (IUnknown* ptr) { Assign(ptr); return *this; }
+    inline bool operator== (T* ptr) const { return m_ptr == ptr; }
 
 protected:
     T* m_ptr;
@@ -168,6 +169,28 @@ HRESULT CXMLConfig::createOrSelectRoot(LPCOLESTR rootTagName, IXMLDOMElement** p
 
     setModified();
     return S_OK;
+}
+
+bool CXMLConfig::isEmpty() const
+{
+    HRESULT hr = S_OK;
+
+    if (!m_pDoc) return true;
+
+    CSimplePtr<IXMLDOMElement> pRoot;
+
+    hr = m_pDoc->get_documentElement(&pRoot);
+    if (FAILED(hr))
+    {
+        return true;
+    }
+
+    if (pRoot == nullptr)
+    {
+        return true;
+    }
+
+    return false;
 }
 
 HRESULT CXMLConfig::setValue(LPCOLESTR rootTagName, LPCOLESTR attr, LPCOLESTR value)
