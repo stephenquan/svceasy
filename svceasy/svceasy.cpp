@@ -364,6 +364,7 @@ DWORD WINAPI CServiceApp::ThreadProc()
 
     CloseHandle(hStdOutPipeWrite);
 
+    m_Running = true;
     while (m_Running)
     {
         DWORD dwTotalAvail = 0;
@@ -378,15 +379,7 @@ DWORD WINAPI CServiceApp::ThreadProc()
         DWORD dwWait = WaitForSingleObject(pi.hProcess, 2000);
         if (dwWait == WAIT_OBJECT_0) break;
     }
-
-    ReadFile(hStdOutPipeRead, buf, 1024, &dwRead, NULL);
-    while (dwRead != 0)
-    {
-        buf[dwRead] = '\0';
-        qDebug() << buf;
-        dwRead = 0;
-        ReadFile(hStdOutPipeRead, buf, 1024, &dwRead, NULL);
-    }
+    TerminateProcess(pi.hProcess, 0);
 
     // Clean up and exit.
     CloseHandle(hStdOutPipeRead);
