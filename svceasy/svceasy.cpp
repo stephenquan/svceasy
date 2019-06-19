@@ -316,6 +316,35 @@ void CServiceApp::ServiceShutdown()
     SetServiceStatus(SERVICE_STOPPED);
 }
 
+void KillProcessTree(DWORD myprocID)
+{
+    PROCESSENTRY32 pe;
+
+    memset(&pe, 0, sizeof(PROCESSENTRY32));
+    pe.dwSize = sizeof(PROCESSENTRY32);
+
+    HANDLE hSnap = ::CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+
+    if (::Process32First(hSnap, &pe))
+    {
+        do // Recursion
+        {
+            if (pe.th32ParentProcessID == myprocID)
+                KillProcessTree(pe.th32ProcessID);
+        } while (::Process32Next(hSnap, &pe));
+    }
+
+
+    // kill the main process
+    HANDLE hProc = ::OpenProcess(PROCESS_ALL_ACCESS, FALSE, myprocID);
+
+    if (hProc)
+    {
+        ::TerminateProcess(hProc, 1);
+        ::CloseHandle(hProc);
+    }
+}
+
 DWORD WINAPI CServiceApp::ThreadProc()
 {
     BOOL ok = TRUE;
@@ -379,7 +408,7 @@ DWORD WINAPI CServiceApp::ThreadProc()
         DWORD dwWait = WaitForSingleObject(pi.hProcess, 2000);
         if (dwWait == WAIT_OBJECT_0) break;
     }
-    TerminateProcess(pi.hProcess, 0);
+    KillProcessTree(pi.dwProcessId);
 
     // Clean up and exit.
     CloseHandle(hStdOutPipeRead);

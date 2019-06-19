@@ -14,6 +14,7 @@
 #include <windows.h>
 #include <stdio.h>
 #include <tchar.h>
+#include <TlHelp32.h>
 #include "msxml2.h"
 
 #pragma comment(lib, "msxml2.lib")
