@@ -163,6 +163,7 @@
     <ClInclude Include="FormatMessage.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="QDebug.h" />
+    <ClInclude Include="resource.h" />
     <ClInclude Include="SCManager.h" />
     <ClInclude Include="XMLConfig.h" />
   </ItemGroup>
@@ -178,6 +179,9 @@
     <ClCompile Include="SCManager.cpp" />
     <ClCompile Include="svceasy.cpp" />
     <ClCompile Include="XMLConfig.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="svceasy.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

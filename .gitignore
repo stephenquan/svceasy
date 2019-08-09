@@ -1,5 +1,7 @@
 x64
 *.user
 .vs
+*.filters
+*.aps
 svceasy/Debug/
 svceasy/Release/
