@@ -97,7 +97,9 @@ CServiceApp::CServiceApp(int argc, wchar_t* argv[]) :
     GetModuleFileName(::GetModuleHandle(NULL), szPath, 1024);
 
     m_SCManager.SetStartType(SERVICE_DEMAND_START);
-    m_SCManager.SetBinaryPathName(szPath);
+    TCHAR szBinaryPathName[1024] = { };
+    _stprintf_s(szBinaryPathName, _T("\"%s\""), szPath);
+    m_SCManager.SetBinaryPathName(szBinaryPathName);
     //m_SCManager.SetDependencies(L"");
     //m_SCManager.SetServiceStartName(L"NT AUTHORITY\\LocalService");
 
